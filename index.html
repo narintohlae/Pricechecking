@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สแกนบาร์โค้ด - เช็คราคา</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Barcode scanning library -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <style>
+        /* Custom styles for the scanner highlight */
+        #reader {
+            position: relative;
+            border: 2px solid #e5e7eb; /* gray-200 */
+            border-radius: 0.5rem; /* rounded-lg */
+            overflow: hidden;
+        }
+        #reader video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .scan-region-highlight {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            height: 40%;
+            border: 3px solid rgba(4, 195, 87, 0.8);
+            box-shadow: 0 0 20px rgba(4, 195, 87, 0.5), inset 0 0 20px rgba(4, 195, 87, 0.5);
+            border-radius: 1rem;
+        }
+        .scan-laser {
+            position: absolute;
+            top: 50%;
+            left: 10%;
+            width: 80%;
+            height: 2px;
+            background: rgba(255, 0, 0, 0.7);
+            box-shadow: 0 0 5px red;
+            animation: scanning 2s infinite linear;
+        }
+        @keyframes scanning {
+            0% { top: 30%; }
+            50% { top: 70%; }
+            100% { top: 30%; }
+        }
+    </style>
+    <meta name="theme-color" content="#28a745">
+    <link rel="manifest" href='data:application/manifest+json,{
+        "name": "สแกนบาร์โค้ด - เช็คราคา",
+        "short_name": "Barcode Scanner",
+        "start_url": ".",
+        "display": "standalone",
+        "background_color": "#ffffff",
+        "theme_color": "#28a745",
+        "icons": [
+            {
+                "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAz0lEQVR4AcXBsU0EQQxE0e9yKgtuEG3Xrl1dzr3KZZsGDBgwYMCAAQMGDBgwYMCAAQMGDBgwoI6TQr0tC+6zLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzLRYzL-",
+                "type": "image/png",
+                "sizes": "32x32"
+            }
+        ]
+    }'>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="container mx-auto max-w-2xl p-4 min-h-screen flex flex-col">
+        <header class="text-center my-6">
+            <h1 class="text-3xl font-bold text-gray-800">สแกนบาร์โค้ด - เช็คราคา</h1>
+            <p class="text-gray-500 mt-2">วางบาร์โค้ดของสินค้าในกรอบเพื่อสแกน</p>
+        </header>
+
+        <main class="bg-white rounded-lg shadow-xl p-6 flex-grow flex flex-col items-center">
+            <!-- Camera Viewfinder -->
+            <div id="reader" class="w-full md:w-3/4 aspect-video mb-4">
+                <div class="scan-region-highlight"></div>
+                <div class="scan-laser"></div>
+            </div>
+            
+            <!-- Status Messages -->
+            <div id="status-message" class="text-center text-gray-600 mb-4 h-6"></div>
+
+            <!-- Controls -->
+            <div id="controls" class="flex flex-col sm:flex-row gap-4 items-center">
+                <button id="startButton" class="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 shadow-md flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-camera-video-fill" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M0 5a2 2 0 0 1 2-2h7.5a2 2 0 0 1 1.983 1.738l3.11-1.382A1 1 0 0 1 16 4.269v7.462a1 1 0 0 1-1.406.913l-3.111-1.382A2 2 0 0 1 9.5 13H2a2 2 0 0 1-2-2V5z"/>
+                    </svg>
+                    เริ่มสแกน
+                </button>
+                <button id="stopButton" class="w-full sm:w-auto bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 shadow-md hidden flex items-center justify-center gap-2">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-stop-circle-fill" viewBox="0 0 16 16">
+                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM6.5 5A1.5 1.5 0 0 0 5 6.5v3A1.5 1.5 0 0 0 6.5 11h3A1.5 1.5 0 0 0 11 9.5v-3A1.5 1.5 0 0 0 9.5 5h-3z"/>
+                    </svg>
+                    หยุดสแกน
+                </button>
+            </div>
+
+            <!-- Result Display -->
+            <div id="result" class="mt-6 w-full text-center p-4 bg-gray-50 rounded-lg border border-gray-200 hidden">
+                <h2 class="text-lg font-semibold text-gray-700">ผลการสแกน:</h2>
+                <p id="scanned-barcode" class="text-2xl font-mono text-green-600 my-2 break-all"></p>
+                <div id="price-info" class="text-gray-600 mt-2"></div>
+            </div>
+        </main>
+        
+        <footer class="text-center text-gray-400 text-sm py-4">
+            <p>สร้างโดย Gemini</p>
+        </footer>
+    </div>
+
+    <script>
+        // DOM Elements
+        const startButton = document.getElementById('startButton');
+        const stopButton = document.getElementById('stopButton');
+        const resultContainer = document.getElementById('result');
+        const scannedBarcodeEl = document.getElementById('scanned-barcode');
+        const priceInfoEl = document.getElementById('price-info');
+        const statusMessageEl = document.getElementById('status-message');
+
+        let html5QrcodeScanner;
+        // Use a Map for efficient barcode lookups
+        const productDatabase = new Map();
+        // URL for the Google Sheet published as a CSV
+        const dbUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTT3t_8Hx7WcD8uUi2IGt1zDbOMB3MSK57dYnfqrrut3do_Gw2hzYSG9IBIEg8fg7uTEL2sVq-IfVJR/pub?output=csv';
+
+        /**
+         * Fetches and parses product data from the Google Sheet CSV.
+         */
+        async function loadProductDatabase() {
+            startButton.disabled = true;
+            statusMessageEl.textContent = 'กำลังโหลดฐานข้อมูลสินค้า...';
+            
+            try {
+                // Fetch the CSV data from the Google Sheet URL
+                const response = await fetch(dbUrl);
+                if (!response.ok) {
+                    throw new Error(`Network response was not ok: ${response.statusText}`);
+                }
+                const csvData = await response.text();
+                
+                // Parse the CSV data line by line
+                const rows = csvData.trim().split('\n');
+                // Skip the header row (i=0) by starting the loop from i = 1
+                for (let i = 1; i < rows.length; i++) {
+                    const columns = rows[i].split(',');
+                    
+                    // Check if the row has the expected number of columns
+                    if (columns.length >= 5) {
+                        // --- UPDATED LOGIC TO MATCH NEW COLUMNS ---
+                        // Column mapping based on the provided header:
+                        // 0: รหัสสินค้า (Product ID)
+                        // 1: ชื่อการค้า (Trade Name)
+                        // 2: หน่วย (Unit)
+                        // 3: บาร์โค้ด (Barcode)
+                        // 4: ราคา (Price)
+                        // 5: คงเหลือ (Stock)
+                        // 6: ต้นทุน (Cost)
+                        
+                        const tradeName = columns[1] ? columns[1].trim().replace(/"/g, '') : 'N/A';
+                        const barcode = columns[3] ? columns[3].trim() : '';
+                        const price = columns[4] ? parseFloat(columns[4].trim()) : 0;
+
+                        // Add to the database map if a barcode exists
+                        if (barcode) {
+                            productDatabase.set(barcode, {
+                                name: tradeName,
+                                price: price
+                            });
+                        }
+                    }
+                }
+                console.log(`ฐานข้อมูลโหลดสำเร็จ: ${productDatabase.size} รายการ`);
+                statusMessageEl.textContent = 'ฐานข้อมูลพร้อมใช้งาน';
+                
+            } catch (error) {
+                console.error('ไม่สามารถโหลดฐานข้อมูลสินค้าได้:', error);
+                statusMessageEl.textContent = 'เกิดข้อผิดพลาดในการโหลดข้อมูล';
+            } finally {
+                startButton.disabled = false;
+            }
+        }
+
+        // Function to be called on successful scan
+        const onScanSuccess = (decodedText, decodedResult) => {
+            if (navigator.vibrate) {
+                navigator.vibrate(100);
+            }
+
+            stopScanning();
+
+            scannedBarcodeEl.textContent = decodedText;
+            resultContainer.classList.remove('hidden');
+            
+            priceInfoEl.innerHTML = '<p class="animate-pulse">กำลังตรวจสอบราคา...</p>';
+
+            // Look up the scanned barcode in our loaded database
+            const product = productDatabase.get(decodedText);
+
+            if (product) {
+                 priceInfoEl.innerHTML = `
+                    <p><strong>สินค้า:</strong> ${product.name}</p>
+                    <p><strong>ราคา:</strong> <span class="font-bold text-xl">${product.price.toFixed(2)}</span> บาท</p>
+                `;
+            } else {
+                 priceInfoEl.innerHTML = `
+                    <p class="text-red-500 font-semibold">ไม่พบข้อมูลสินค้าสำหรับบาร์โค้ดนี้</p>
+                `;
+            }
+        };
+
+        // Function to handle scan failure (optional)
+        const onScanFailure = (error) => {
+            // This function is called frequently, so it's best to keep it light
+        };
+
+        // Function to start the scanning process
+        const startScanning = () => {
+            statusMessageEl.textContent = 'กำลังเปิดกล้อง...';
+            
+            const config = { 
+                fps: 10, 
+                qrbox: { width: 250, height: 150 },
+                rememberLastUsedCamera: true,
+                formatsToSupport: [
+                    Html5QrcodeSupportedFormats.EAN_13,
+                    Html5QrcodeSupportedFormats.EAN_8,
+                    Html5QrcodeSupportedFormats.UPC_A,
+                    Html5QrcodeSupportedFormats.UPC_E
+                ]
+            };
+
+            html5QrcodeScanner.start(
+                { facingMode: "environment" },
+                config,
+                onScanSuccess,
+                onScanFailure
+            ).then(() => {
+                statusMessageEl.textContent = 'พร้อมสแกน';
+                startButton.classList.add('hidden');
+                stopButton.classList.remove('hidden');
+                resultContainer.classList.add('hidden');
+            }).catch(err => {
+                console.error("Error starting scanner: ", err);
+                statusMessageEl.textContent = 'ไม่สามารถเข้าถึงกล้องได้';
+            });
+        };
+
+        // Function to stop the scanning process
+        const stopScanning = () => {
+            if (html5QrcodeScanner && html5QrcodeScanner.isScanning) {
+                html5QrcodeScanner.stop().then(() => {
+                    startButton.classList.remove('hidden');
+                    stopButton.classList.add('hidden');
+                    statusMessageEl.textContent = '';
+                }).catch(err => {
+                    console.error("Error stopping scanner: ", err);
+                });
+            }
+        };
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            html5QrcodeScanner = new Html5Qrcode("reader");
+            
+            startButton.addEventListener('click', startScanning);
+            stopButton.addEventListener('click', stopScanning);
+
+            // Load the product data from the Google Sheet when the page loads
+            loadProductDatabase();
+        });
+
+    </script>
+</body>
+</html>
